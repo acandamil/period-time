@@ -5,6 +5,7 @@ import { NavigationContainer } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { CalendarScreen } from './components/CalendarScreen';
 import { periods } from './components/CalendarScreen';
+//import { UserScreen } from './components/UserScreen';
 
 const HomeScreen = () => {
   const currentDate = new Date();
@@ -42,8 +43,7 @@ estimatedNextPeriod.setDate(estimatedNextPeriod.getDate() + 28);
 //TO-DO: checkear si funciona esto 
 let daysLeft: number = Math.ceil((estimatedNextPeriod.getTime()-new Date().getTime()) / (24 * 60 * 60 * 1000));
 
-
-const SettingsScreen = () => (
+export const UserScreen = () => (
   <View style={styles.container}>
     <ScrollView>
       <Text style={styles.text}>Tu perfil</Text>
@@ -52,11 +52,7 @@ const SettingsScreen = () => (
     </ScrollView> 
   </View>
 );
-const StatisticScreen = () => (
-  <View style={styles.container}>
-    <Text>Statistic Screen</Text>
-  </View>
-);
+
 
 const Tab = createBottomTabNavigator();
 
@@ -86,14 +82,6 @@ const App = () => (
             color = {color}
           />
         );
-      }else if(route.name == 'Stadistic'){
-        return(
-          <Ionicons 
-            name = "heart-circle-outline"
-            size = {size}
-            color = {color}
-          />
-        );
       }else if(route.name == 'User'){
         return(
           <Ionicons 
@@ -112,8 +100,7 @@ const App = () => (
       
       <Tab.Screen name="Home" component={HomeScreen} options={{headerStyle: {backgroundColor: '#E9C0FE'}}}/>
       <Tab.Screen name="Calendar" component={CalendarScreen} options={{headerStyle: {backgroundColor: '#E9C0FE'}}} />
-      <Tab.Screen name="Statistic" component={StatisticScreen}options={{headerStyle: {backgroundColor: '#E9C0FE'}}} />
-      <Tab.Screen name="User" component={SettingsScreen} options={{headerStyle: {backgroundColor: '#E9C0FE'}}}/>
+      <Tab.Screen name="User" component={UserScreen} options={{headerStyle: {backgroundColor: '#E9C0FE'}}}/>
     </Tab.Navigator>
   </NavigationContainer>
 );

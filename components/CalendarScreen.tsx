@@ -3,7 +3,7 @@ import { View, Text, ScrollView, FlatList, StyleSheet} from "react-native";
 
 
 export const periods = [
-    {key:'February_2024', start: new Date("2024-1-29"), end: new Date ("2024-2-6"), month: 'Febrero 2024'},
+    {key:'February_2024', start: new Date("2024-1-29"), end: new Date ("2024-2-5"), month: 'Febrero 2024'},
     {key:'January_2024', start: new Date("2024-1-1"), end: new Date ("2023-1-7"), month: 'Enero 2024'},
     {key: 'December_2023:', start: new Date("2023-12-1"), end: new Date("2023-12-7"), month: 'Diciembre 2023'},
     {key: 'November_2023:', start: new Date("2023-11-1"), end: new Date("2023-11-7"), month: 'Noviembre 2023'},
