@@ -1,10 +1,16 @@
 import React from "react";
-import { View, Text, ScrollView, FlatList, StyleSheet} from "react-native";
+import { View, Text, ScrollView, FlatList, StyleSheet, Button} from "react-native";
 
+export interface Period {
+  key: string;
+  start: Date;
+  end: Date;
+  month: string;
+}
 
-export const periods = [
+export const periods: Period[] = [
     {key:'February_2024', start: new Date("2024-1-29"), end: new Date ("2024-2-5"), month: 'Febrero 2024'},
-    {key:'January_2024', start: new Date("2024-1-1"), end: new Date ("2023-1-7"), month: 'Enero 2024'},
+    {key:'January_2024', start: new Date("2024-1-1"), end: new Date ("2024-1-7"), month: 'Enero 2024'},
     {key: 'December_2023:', start: new Date("2023-12-1"), end: new Date("2023-12-7"), month: 'Diciembre 2023'},
     {key: 'November_2023:', start: new Date("2023-11-1"), end: new Date("2023-11-7"), month: 'Noviembre 2023'},
     {key: 'October_2023:', start: new Date("2023-10-1"), end: new Date("2023-10-7"), month: 'Octubre 2023'},
@@ -20,9 +26,18 @@ const periodsString = periods.map(period => {
     };
   });
 
-export const CalendarScreen = () => (
+type CalendarProps={
+  dates : Period[];
+  setCalendar : (calendar: Period[]) => void;
+}
+
+export const CalendarScreen = ({dates, setCalendar}: CalendarProps) => (
     <View style={styles.container}>
         <Text style={styles.listTitle}>Tus últimos periodos</Text>
+        <Button
+        title="Nuevo Periodo"
+        //onPress={() => Alert.alert('Simple Button pressed')}
+        />
         <ScrollView>
           <FlatList
           data={periodsString}

@@ -1,11 +1,11 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, FlatList, VirtualizedList} from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { NavigationContainer } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { CalendarScreen } from './components/CalendarScreen';
 import { periods } from './components/CalendarScreen';
-//import { UserScreen } from './components/UserScreen';
+import { UserScreen } from './components/UserScreen';
 
 const HomeScreen = () => {
   const currentDate = new Date();
@@ -43,20 +43,12 @@ estimatedNextPeriod.setDate(estimatedNextPeriod.getDate() + 28);
 //TO-DO: checkear si funciona esto 
 let daysLeft: number = Math.ceil((estimatedNextPeriod.getTime()-new Date().getTime()) / (24 * 60 * 60 * 1000));
 
-export const UserScreen = () => (
-  <View style={styles.container}>
-    <ScrollView>
-      <Text style={styles.text}>Tu perfil</Text>
-      <Text style={styles.text}>Configuración</Text>
-      <Text style={styles.text}>Cerrar sesión</Text>
-    </ScrollView> 
-  </View>
-);
-
 
 const Tab = createBottomTabNavigator();
 
-const App = () => (
+const App = () => {
+  const [calendar, setCalendar] = useState(periods);
+  return (
   <NavigationContainer>
     <Tab.Navigator
     screenOptions={({route}) =>
@@ -99,11 +91,12 @@ const App = () => (
     }>
       
       <Tab.Screen name="Home" component={HomeScreen} options={{headerStyle: {backgroundColor: '#E9C0FE'}}}/>
-      <Tab.Screen name="Calendar" component={CalendarScreen} options={{headerStyle: {backgroundColor: '#E9C0FE'}}} />
+      <Tab.Screen name="Calendar" component={()=><CalendarScreen dates = {periods} setCalendar = {setCalendar}/>} options={{headerStyle: {backgroundColor: '#E9C0FE'}}} />
       <Tab.Screen name="User" component={UserScreen} options={{headerStyle: {backgroundColor: '#E9C0FE'}}}/>
     </Tab.Navigator>
   </NavigationContainer>
 );
+};
 
 const styles = StyleSheet.create({
   container: {
