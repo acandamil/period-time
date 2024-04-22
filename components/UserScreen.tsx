@@ -43,6 +43,12 @@ import { Period } from "../App";
         <Text style={styles.textUser}>Ciclo medio: {calculateMedian(calendar)}</Text>
         <Text style={styles.textUser}>Días medios entre final de un ciclo y comienzo del otro:</Text>
         <Text style={styles.textUser}>Periódo medio:</Text>
+        {calendar.length <= 5 ?(
+            <Text style={styles.textInfo}>Esta información esta calculada con menos de 5 meses, por lo tanto es muy poco fiable</Text>  
+          ):(
+            <Text style={styles.textInfo}>Esta información es aproximada. Pregunte siempre a su médico especialista si tiene dudas.</Text>  
+                )
+        }
       </ScrollView> 
     </View>
   );
@@ -60,5 +66,13 @@ import { Period } from "../App";
         fontWeight: 'bold',
         fontSize: 25, 
         color: 'purple'
-      }
+      },
+    textInfo:{
+      textAlign: "center",
+      paddingLeft: 20,
+      paddingRight: 50,
+      marginTop:50,   
+      fontSize: 15, 
+      color: 'a83248'
+    }
   });
