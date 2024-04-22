@@ -4,12 +4,17 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { NavigationContainer } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { CalendarScreen } from './components/CalendarScreen';
-import { periods } from './components/CalendarScreen';
 import { UserScreen } from './components/UserScreen';
+import { SymptomsScreen } from './components/SymptonsScreen';
 
-const HomeScreen = () => {
+type HomeProps={
+  daysLeft: number;
+  calendar : Period[];
+}
+
+const HomeScreen = ({daysLeft, calendar}: HomeProps) => {
   const currentDate = new Date();
-  const isWithinRange = currentDate >= periods[0].start && currentDate <= periods[0].end;
+  const isWithinRange = currentDate >= calendar[0].start && currentDate <= calendar[0].end;
   //T0-D0: CHECK IF THE SECOND VIEW HAS THE PROPER STYLE
   return(
     <View style={styles.container}>
@@ -35,19 +40,31 @@ const HomeScreen = () => {
   );
 };
 
-
-
-const dateLastPeriod: Date = periods[0].start;
-let estimatedNextPeriod: Date = new Date(dateLastPeriod);
-estimatedNextPeriod.setDate(estimatedNextPeriod.getDate() + 28);
-//TO-DO: checkear si funciona esto 
-let daysLeft: number = Math.ceil((estimatedNextPeriod.getTime()-new Date().getTime()) / (24 * 60 * 60 * 1000));
-
+export interface Period {
+  key: string;
+  start: Date;
+  end: Date;
+  month: string;
+}
+const PERIODOS: Period[] = [
+  {key:'February_2024', start: new Date("2024-1-29"), end: new Date ("2024-2-5"), month: 'Febrero 2024'},
+  {key:'January_2024', start: new Date("2024-1-1"), end: new Date ("2024-1-7"), month: 'Enero 2024'},
+  {key: 'December_2023:', start: new Date("2023-12-1"), end: new Date("2023-12-7"), month: 'Diciembre 2023'},
+  {key: 'November_2023:', start: new Date("2023-11-1"), end: new Date("2023-11-7"), month: 'Noviembre 2023'},
+  {key: 'October_2023:', start: new Date("2023-10-1"), end: new Date("2023-10-7"), month: 'Octubre 2023'},
+  {key: 'September_2023:', start: new Date("2023-9-1"), end: new Date("2023-9-7"), month: 'Septiembre 2023'},
+  {key: 'August_2023:', start: new Date("2023-8-1"), end: new Date("2023-8-7"), month: 'Agosto 2023'},
+];
 
 const Tab = createBottomTabNavigator();
 
 const App = () => {
-  const [calendar, setCalendar] = useState(periods);
+  const [calendar, setCalendar] = useState(PERIODOS);   
+  const dateLastPeriod: Date = calendar[0].start;
+  let estimatedNextPeriod: Date = new Date(dateLastPeriod);
+  estimatedNextPeriod.setDate(estimatedNextPeriod.getDate() + 28);
+  let daysLeft: number = Math.ceil((estimatedNextPeriod.getTime()-new Date().getTime()) / (24 * 60 * 60 * 1000));
+ 
   return (
   <NavigationContainer>
     <Tab.Navigator
@@ -74,6 +91,14 @@ const App = () => {
             color = {color}
           />
         );
+      }else if(route.name == 'Symptoms'){
+        return(
+          <Ionicons 
+            name = "fitness-outline"
+            size = {size}
+            color = {color}
+          />
+        ); 
       }else if(route.name == 'User'){
         return(
           <Ionicons 
@@ -90,9 +115,10 @@ const App = () => {
     
     }>
       
-      <Tab.Screen name="Home" component={HomeScreen} options={{headerStyle: {backgroundColor: '#E9C0FE'}}}/>
-      <Tab.Screen name="Calendar" component={()=><CalendarScreen dates = {periods} setCalendar = {setCalendar}/>} options={{headerStyle: {backgroundColor: '#E9C0FE'}}} />
-      <Tab.Screen name="User" component={UserScreen} options={{headerStyle: {backgroundColor: '#E9C0FE'}}}/>
+      <Tab.Screen name="Home" component={()=><HomeScreen daysLeft={daysLeft} calendar={calendar}/>} options={{headerStyle: {backgroundColor: '#E9C0FE'}}}/>
+      <Tab.Screen name="Calendar" component={()=><CalendarScreen dates = {calendar} setCalendar = {setCalendar}/>} options={{headerStyle: {backgroundColor: '#E9C0FE'}}} />
+      <Tab.Screen name="Symptoms" component={()=><SymptomsScreen/>} options={ {headerStyle: { backgroundColor: '#E9C0FE' } }} />
+      <Tab.Screen name="User" component={() => <UserScreen calendar={calendar} />} options={{ headerStyle: { backgroundColor: '#E9C0FE' } }} />
     </Tab.Navigator>
   </NavigationContainer>
 );

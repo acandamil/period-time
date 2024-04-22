@@ -1,52 +1,45 @@
 import React from "react";
-import { View, Text, ScrollView, FlatList, StyleSheet, Button} from "react-native";
+import { View, Text, ScrollView, FlatList, StyleSheet, Button, Pressable} from "react-native"; 
+import { Period } from "../App";
 
-export interface Period {
-  key: string;
-  start: Date;
-  end: Date;
-  month: string;
-}
-
-export const periods: Period[] = [
-    {key:'February_2024', start: new Date("2024-1-29"), end: new Date ("2024-2-5"), month: 'Febrero 2024'},
-    {key:'January_2024', start: new Date("2024-1-1"), end: new Date ("2024-1-7"), month: 'Enero 2024'},
-    {key: 'December_2023:', start: new Date("2023-12-1"), end: new Date("2023-12-7"), month: 'Diciembre 2023'},
-    {key: 'November_2023:', start: new Date("2023-11-1"), end: new Date("2023-11-7"), month: 'Noviembre 2023'},
-    {key: 'October_2023:', start: new Date("2023-10-1"), end: new Date("2023-10-7"), month: 'Octubre 2023'},
-    {key: 'September_2023:', start: new Date("2023-9-1"), end: new Date("2023-9-7"), month: 'Septiembre 2023'},
-    {key: 'August_2023:', start: new Date("2023-8-1"), end: new Date("2023-8-7"), month: 'Agosto 2023'},
-  ];
-  
-const periodsString = periods.map(period => {
-    return {
-      ...period,
-      start: period.start.toISOString().split('T')[0],
-      end: period.end.toISOString().split('T')[0],
-    };
-  });
 
 type CalendarProps={
   dates : Period[];
   setCalendar : (calendar: Period[]) => void;
 }
 
-export const CalendarScreen = ({dates, setCalendar}: CalendarProps) => (
-    <View style={styles.container}>
+export const CalendarScreen = ({dates, setCalendar}: CalendarProps) => {
+  function addPeriod (){
+    const newPeriodDate = new Date();
+    const newEndPeriodDate = new Date();
+    newEndPeriodDate.setDate(newPeriodDate.getDate() + 7);
+    const newKey = "March_2024";
+    const newMonth = 'Marzo 2024';
+    const newPeriod = {key: newKey, start: newPeriodDate, end: newEndPeriodDate, month: newMonth};
+    const periodsNew = [...dates, newPeriod]
+    setCalendar(periodsNew)
+  }
+  const datesString = dates.map(period => {
+    return {
+      ...period,
+      start: period.start.toISOString().split('T')[0],
+      end: period.end.toISOString().split('T')[0],
+    };
+  });
+   return ( <View style={styles.container}>
         <Text style={styles.listTitle}>Tus últimos periodos</Text>
-        <Button
-        title="Nuevo Periodo"
-        //onPress={() => Alert.alert('Simple Button pressed')}
-        />
+        <View style={styles.screenButton}>
+          <Button title="Nuevo periodo" color = 'white' onPress={()=>addPeriod()} />
+        </View>
         <ScrollView>
           <FlatList
-          data={periodsString}
+          data={datesString}
           renderItem={({item}) => <Item month= {item.month} start={item.start}  end={item.end}/>}
           keyExtractor={item => item.key}
           />
         </ScrollView> 
     </View>
-  );
+  )};
 
   const Item = ({ month, start, end }: { month: string; start: string; end: string }) => (
     <View style={styles.item}>
@@ -94,5 +87,23 @@ export const CalendarScreen = ({dates, setCalendar}: CalendarProps) => (
       fontWeight: 'bold',
       fontSize: 25, 
       color: 'purple'
+    },
+    screenButton:{
+      marginRight:40,
+      marginLeft:40,
+      marginTop:10,
+      paddingTop:10,
+      paddingBottom:10,
+      backgroundColor:'purple',
+      borderRadius:10,
+      borderWidth: 1,
+      borderColor: '#fff'
+    },
+    buttonText:{
+        color:'#E4C1F7',
+        textAlign:'center',
+        fontSize: 20,
+        paddingLeft : 10,
+        paddingRight : 10
     }
   });

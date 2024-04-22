@@ -1,7 +1,7 @@
 import React from "react";
 import { View, Text, ScrollView, StyleSheet} from "react-native";
-import { periods } from "./CalendarScreen";
-import { Period } from "./CalendarScreen";
+import { Period } from "../App";
+
 
 /*function calculateAverage(periods: Period[]): number {
     let sum: number = 0;
@@ -32,11 +32,15 @@ import { Period } from "./CalendarScreen";
       return durations[mid];
     }
   }
-
-export const UserScreen = () => (
+ 
+  type UserProps={
+    calendar : Period[];
+  }
+  
+  export const UserScreen = ({calendar}: UserProps) => (
     <View style={styles.container}>
       <ScrollView>
-        <Text style={styles.textUser}>Ciclo medio: {calculateMedian(periods)}</Text>
+        <Text style={styles.textUser}>Ciclo medio: {calculateMedian(calendar)}</Text>
         <Text style={styles.textUser}>Días medios entre final de un ciclo y comienzo del otro:</Text>
         <Text style={styles.textUser}>Periódo medio:</Text>
       </ScrollView> 
