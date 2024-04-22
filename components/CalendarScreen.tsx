@@ -1,14 +1,15 @@
 import React from "react";
 import { View, Text, ScrollView, FlatList, StyleSheet, Button, Pressable} from "react-native"; 
-import { Period } from "../App";
+import { Period, SymptonItem } from "../App";
 
 
 type CalendarProps={
   dates : Period[];
   setCalendar : (calendar: Period[]) => void;
+  symptonItem : SymptonItem[];
 }
 
-export const CalendarScreen = ({dates, setCalendar}: CalendarProps) => {
+export const CalendarScreen = ({dates, setCalendar, symptonItem}: CalendarProps) => {
   function addPeriod (){
     const newPeriodDate = new Date();
     const newEndPeriodDate = new Date();

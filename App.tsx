@@ -7,6 +7,7 @@ import { CalendarScreen } from './components/CalendarScreen';
 import { UserScreen } from './components/UserScreen';
 import { SymptomsScreen } from './components/SymptonsScreen';
 
+
 type HomeProps={
   daysLeft: number;
   calendar : Period[];
@@ -58,8 +59,13 @@ const PERIODOS: Period[] = [
 
 const Tab = createBottomTabNavigator();
 
+export interface SymptonItem {
+  id: string;
+  title: string;
+}
 const App = () => {
-  const [calendar, setCalendar] = useState(PERIODOS);   
+  const [calendar, setCalendar] = useState(PERIODOS);  
+  const[symptonItems, setSymptonItem] = useState<SymptonItem[]>([]);
   const dateLastPeriod: Date = calendar[0].start;
   let estimatedNextPeriod: Date = new Date(dateLastPeriod);
   estimatedNextPeriod.setDate(estimatedNextPeriod.getDate() + 28);
@@ -116,8 +122,8 @@ const App = () => {
     }>
       
       <Tab.Screen name="Home" component={()=><HomeScreen daysLeft={daysLeft} calendar={calendar}/>} options={{headerStyle: {backgroundColor: '#E9C0FE'}}}/>
-      <Tab.Screen name="Calendar" component={()=><CalendarScreen dates = {calendar} setCalendar = {setCalendar}/>} options={{headerStyle: {backgroundColor: '#E9C0FE'}}} />
-      <Tab.Screen name="Symptoms" component={()=><SymptomsScreen/>} options={ {headerStyle: { backgroundColor: '#E9C0FE' } }} />
+      <Tab.Screen name="Calendar" component={()=><CalendarScreen dates = {calendar} setCalendar = {setCalendar} symptonItem={symptonItems}/>} options={{headerStyle: {backgroundColor: '#E9C0FE'}}} />
+      <Tab.Screen name="Symptoms" component={()=><SymptomsScreen symptonItems = {symptonItems} setSymptonItem = {setSymptonItem}/>} options={ {headerStyle: { backgroundColor: '#E9C0FE' } }} />
       <Tab.Screen name="User" component={() => <UserScreen calendar={calendar} />} options={{ headerStyle: { backgroundColor: '#E9C0FE' } }} />
     </Tab.Navigator>
   </NavigationContainer>

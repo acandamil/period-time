@@ -1,31 +1,29 @@
 import React, { useState } from "react";
 import { View, StyleSheet, TextInput, Button, FlatList, Text} from "react-native";
+import { SymptonItem } from "../App";
 
-interface Item {
-    id: string;
-    title: string;
+  type SymptomsProps = {
+    symptonItems : SymptonItem[];
+    setSymptonItem: (symptonItems: SymptonItem[] ) => void;
   }
- 
-
-  export const SymptomsScreen = () =>{
+  export const SymptomsScreen = ({symptonItems, setSymptonItem}: SymptomsProps) =>{
     const [sympton, setSympton] = useState<string>('')
-    const [items, setItems] = useState<Item[]>([]);
     
     const handleButtonPress = () =>{
         if(sympton.trim() !== ''){
-            const newItem: Item = {
-                id: String(items.length + 1),
+            const newItem: SymptonItem = {
+                id: String(symptonItems.length + 1),
                 title: sympton,
             }
-            setItems([...items, newItem]);
+            setSymptonItem([...symptonItems, newItem]);
             setSympton('');
         }
     };
 
     type ItemComponentProps = {title: string, id:string};
     const deleteItem = ({id}: {id: string}) => {
-        const filteredItems = items.filter(item => item.id !== id)
-        setItems(filteredItems)
+        const filteredItems = symptonItems.filter(symptonItems => symptonItems.id !== id)
+        setSymptonItem(filteredItems)
         };
   
     const ItemComponent = ({title, id}: ItemComponentProps) => (
@@ -49,7 +47,7 @@ interface Item {
         <Button title = "Guardar" color='white' onPress={handleButtonPress}/>
       </View>
       <FlatList
-        data={items}
+        data={symptonItems}
         renderItem={({item}) => <ItemComponent title={item.title} id={item.id} />}
         keyExtractor={item => item.id}
       />
