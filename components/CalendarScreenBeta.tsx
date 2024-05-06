@@ -1,5 +1,5 @@
 import { Calendar, CalendarList, Agenda } from "react-native-calendars";
-import { Period, SymptomDict, SymptonItem } from "../App";
+import { Period, SymptomDict, SymptonItem, useStorage } from "../App";
 import {
   View,
   Button,
@@ -11,12 +11,16 @@ import {
   Alert,
 } from "react-native";
 import { useState } from "react";
+import { JsonDate, getDate, toJsonDate } from "../utils";
 
 const getDateId = (day: Date) => day.toISOString().substring(0, 10);
 
+const getJsonDateId = (day: JsonDate) =>
+  getDate(day).toISOString().substring(0, 10);
+
 type SymptonEvent = {
   symptonId: string;
-  date: Date;
+  date: JsonDate;
 };
 type CalendarProps = {
   dates: Period[];
@@ -29,33 +33,26 @@ export const CalendarScreenBeta = ({
   symptonItem,
 }: CalendarProps) => {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
+  const selectedJsonDate =
+    selectedDate !== undefined ? toJsonDate(selectedDate) : undefined;
   const [modalVisible, setModalVisible] = useState(false);
-  const [symptons, setSymptons] = useState<SymptonEvent[]>([
-    {
-      symptonId: "1",
-      date: new Date(2024, 5, 6),
-    },
-    {
-      symptonId: "2",
-      date: new Date(2024, 5, 6),
-    },
-    {
-      symptonId: "1",
-      date: new Date(2024, 5, 7),
-    },
-  ]);
+  const [symptons, setSymptons] = useStorage<SymptonEvent[]>(
+    "symptonEvents",
+    []
+  );
   const selectedPeriods = dates.filter(
     (period) =>
       selectedDate !== undefined &&
-      period.start <= selectedDate &&
-      period.end >= selectedDate
+      getDate(period.start) <= selectedDate &&
+      getDate(period.end) >= selectedDate
   );
   const selectedPeriod = selectedPeriods.at(0);
 
   const days = dates.flatMap((period) => {
     const dates = [];
-    const currentDate = new Date(period.start);
-    while (currentDate <= period.end) {
+    const currentDate = getDate(period.start);
+    const end = getDate(period.end);
+    while (currentDate <= end) {
       dates.push(new Date(currentDate));
       currentDate.setDate(currentDate.getDate() + 1);
     }
@@ -70,7 +67,7 @@ export const CalendarScreenBeta = ({
   const markedDates = Object.fromEntries(markedDatePairs);
 
   symptons.forEach((sympton) => {
-    const dateId = getDateId(sympton.date);
+    const dateId = getJsonDateId(sympton.date);
     const dot = {
       key: sympton.symptonId,
       color: symptonItem[sympton.symptonId].colour,
@@ -90,7 +87,7 @@ export const CalendarScreenBeta = ({
     selectedDate === undefined
       ? []
       : symptons.filter(
-          (symptom) => getDateId(symptom.date) === getDateId(selectedDate)
+          (symptom) => getJsonDateId(symptom.date) === getDateId(selectedDate)
         );
   console.log({ symptomForSelectedDate });
   const symptomList = Object.entries(symptonItem);
@@ -113,10 +110,10 @@ export const CalendarScreenBeta = ({
               renderItem={({ item: [id, sympton] }) => (
                 <TouchableOpacity
                   onPress={() => {
-                    if (selectedDate !== undefined) {
+                    if (selectedJsonDate !== undefined) {
                       const newSympton = {
                         symptonId: id,
-                        date: selectedDate,
+                        date: selectedJsonDate,
                       };
                       setSymptons([...symptons, newSympton]);
                     }
@@ -141,12 +138,12 @@ export const CalendarScreenBeta = ({
         <Button
           title="Nueva Regla"
           onPress={() => {
-            if (selectedDate !== undefined) {
+            if (selectedDate !== undefined && selectedJsonDate !== undefined) {
               const end = new Date(selectedDate);
               end.setDate(end.getDate() + 6);
               const newPeriod = {
-                start: selectedDate,
-                end,
+                start: selectedJsonDate,
+                end: toJsonDate(end),
               };
               setCalendar([...dates, newPeriod]);
             }

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -14,16 +14,18 @@ import { CalendarScreen } from "./components/CalendarScreen";
 import { UserScreen } from "./components/UserScreen";
 import { SymptomsScreen } from "./components/SymptonsScreen";
 import { CalendarScreenBeta } from "./components/CalendarScreenBeta";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { JsonDate, getDate, toJsonDate } from "./utils";
 
 type HomeProps = {
   daysLeft: number;
   calendar: Period[];
 };
-
 const HomeScreen = ({ daysLeft, calendar }: HomeProps) => {
   const currentDate = new Date();
   const isWithinRange =
-    currentDate >= calendar[0].start && currentDate <= calendar[0].end;
+    currentDate >= getDate(calendar[0].start) &&
+    currentDate <= getDate(calendar[0].end);
   //T0-D0: CHECK IF THE SECOND VIEW HAS THE PROPER STYLE
   return (
     <View style={styles.container}>
@@ -50,17 +52,38 @@ const HomeScreen = ({ daysLeft, calendar }: HomeProps) => {
 };
 
 export interface Period {
-  start: Date;
-  end: Date;
+  start: JsonDate;
+  end: JsonDate;
 }
-const PERIODOS: Period[] = [
-  { start: new Date("2024-1-29"), end: new Date("2024-2-5") },
-  { start: new Date("2024-1-1"), end: new Date("2024-1-7") },
-  { start: new Date("2023-12-1"), end: new Date("2023-12-7") },
-  { start: new Date("2023-11-1"), end: new Date("2023-11-7") },
-  { start: new Date("2023-10-1"), end: new Date("2023-10-7") },
-  { start: new Date("2023-9-1"), end: new Date("2023-9-7") },
-  { start: new Date("2023-8-1"), end: new Date("2023-8-7") },
+const PERIODS: Period[] = [
+  {
+    start: toJsonDate(new Date("2024-1-29")),
+    end: toJsonDate(new Date("2024-2-5")),
+  },
+  {
+    start: toJsonDate(new Date("2024-1-1")),
+    end: toJsonDate(new Date("2024-1-7")),
+  },
+  {
+    start: toJsonDate(new Date("2023-12-1")),
+    end: toJsonDate(new Date("2023-12-7")),
+  },
+  {
+    start: toJsonDate(new Date("2023-11-1")),
+    end: toJsonDate(new Date("2023-11-7")),
+  },
+  {
+    start: toJsonDate(new Date("2023-10-1")),
+    end: toJsonDate(new Date("2023-10-7")),
+  },
+  {
+    start: toJsonDate(new Date("2023-9-1")),
+    end: toJsonDate(new Date("2023-9-7")),
+  },
+  {
+    start: toJsonDate(new Date("2023-8-1")),
+    end: toJsonDate(new Date("2023-8-7")),
+  },
 ];
 const Tab = createBottomTabNavigator();
 
@@ -72,15 +95,45 @@ export type SymptomDict = {
   [key in string]: SymptonItem;
 };
 
-//const storage = new MMKVLoader().initialize();
+export function useStorage<T>(
+  key: string,
+  initialValue: T
+): [T, (value: T) => Promise<void>] {
+  const [state, setState] = useState<T>(initialValue);
+  useEffect(() => {
+    const f = async () => {
+      try {
+        const jsonValue = await AsyncStorage.getItem(key);
+        const value = jsonValue != null ? JSON.parse(jsonValue) : null;
+        if (value !== null) {
+          setState(value);
+        }
+      } catch (e) {
+        // TODO
+      }
+    };
+    f();
+  }, []);
+
+  const setStorageState = async (value: T) => {
+    try {
+      const jsonValue = JSON.stringify(value);
+      await AsyncStorage.setItem(key, jsonValue);
+      setState(value);
+    } catch (e) {
+      // saving error
+    }
+  };
+  return [state, setStorageState];
+}
 
 const App = () => {
-  const [calendar, setCalendar] = useState(PERIODOS);
-  const [symptonItems, setSymptonItem] = useState<SymptomDict>({
-    "1": { title: "EJEMPLO", colour: "black" },
-    "2": { title: "EJEMPLO2", colour: "pink" },
-  });
-  const dateLastPeriod: Date = calendar[0].start;
+  const [calendar, setCalendar] = useStorage<Period[]>("periods", PERIODS);
+  const [symptonItems, setSymptonItem] = useStorage<SymptomDict>(
+    "symptoms",
+    {}
+  );
+  const dateLastPeriod: Date = getDate(calendar[0].start);
   let estimatedNextPeriod: Date = new Date(dateLastPeriod);
   estimatedNextPeriod.setDate(estimatedNextPeriod.getDate() + 28);
   let daysLeft: number = Math.ceil(
