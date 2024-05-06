@@ -1,30 +1,36 @@
 import React, { useState } from "react";
 import { View, StyleSheet, TextInput, Button, FlatList, Text, Alert} from "react-native";
-import { SymptonItem } from "../App";
+import { SymptomDict, SymptonItem } from "../App";
+import uuid from 'react-native-uuid';
 
   type SymptomsProps = {
-    symptonItems : SymptonItem[];
-    setSymptonItem: (symptonItems: SymptonItem[] ) => void;
+    symptonItems : SymptomDict;
+    setSymptonItem: (symptonItems: SymptomDict ) => void;
   }
 
   export const SymptomsScreen = ({symptonItems, setSymptonItem}: SymptomsProps) =>{
     const [sympton, setSympton] = useState<string>('')
+    const symptomList = Object.entries(symptonItems)
+
     
     const handleButtonPress = () =>{
-      if (symptonItems.length >= 10) {
+      if (symptomList.length >= 10) {
         Alert.alert('Ya has añadido 10 síntomas');
       } else if(sympton.trim() !== ''){
             const newItem: SymptonItem = {
-                id: String(symptonItems.length + 1),
                 title: sympton,
                 colour: '#'+ Math.floor(Math.random() * 16777215).toString(16),
             }
-            const alreadyExist = symptonItems.find(item => item.title === newItem.title)
+            const alreadyExist = symptomList.find(([id, sympton]) => sympton.title === newItem.title)
             if(alreadyExist){
               Alert.alert('No puedes añadir dos síntomas con el mismo nombre');
             }else{
-            setSymptonItem([...symptonItems, newItem]);
-            setSympton('');
+              const id = uuid.v4().toString();
+              setSymptonItem({
+                ...symptonItems,
+                [id]:newItem
+              });
+              setSympton('');
             }
         }
     };
@@ -32,8 +38,8 @@ import { SymptonItem } from "../App";
     type ItemComponentProps = {title: string, id:string, colour: string};
     
     const deleteItem = ({id}: {id: string}) => {
-        const filteredItems = symptonItems.filter(symptonItems => symptonItems.id !== id)
-        setSymptonItem(filteredItems)
+        const {[id]: _symptom, ...rest} = symptonItems
+        setSymptonItem(rest)
         };
   
     const ItemComponent = ({title, id, colour}: ItemComponentProps) => (
@@ -59,9 +65,9 @@ import { SymptonItem } from "../App";
         <Button title = "Guardar" color='white' onPress={handleButtonPress}/>
       </View>
       <FlatList
-        data={symptonItems}
-        renderItem={({item}) => <ItemComponent title={item.title} id={item.id} colour={item.colour}/>}
-        keyExtractor={item => item.id}
+        data={symptomList}
+        renderItem={({item: [id, sympton]}) => <ItemComponent title={sympton.title} id={id} colour={sympton.colour}/>}
+        keyExtractor={([id, sympton])=> id}
       />
     </View>
     )
@@ -118,7 +124,8 @@ const styles = StyleSheet.create({
         backgroundColor:'purple',
         borderRadius:5,
         borderWidth: 1,
-        borderColor: 'purple'
+        borderColor: 'purple',
+        width: 70,
 
       },
       title: {
@@ -129,6 +136,7 @@ const styles = StyleSheet.create({
         paddingBottom:10,
         fontSize: 20,
         fontWeight: 'bold',
+        width : 160,
 
       },
       circle: {

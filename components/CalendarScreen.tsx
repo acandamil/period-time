@@ -1,12 +1,12 @@
 import React from "react";
 import { View, Text, ScrollView, FlatList, StyleSheet, Button, Pressable} from "react-native"; 
-import { Period, SymptonItem } from "../App";
+import { Period, SymptomDict, SymptonItem } from "../App";
 
 
 type CalendarProps={
   dates : Period[];
   setCalendar : (calendar: Period[]) => void;
-  symptonItem : SymptonItem[];
+  symptonItem : SymptomDict[];
 }
 
 export const CalendarScreen = ({dates, setCalendar, symptonItem}: CalendarProps) => {
