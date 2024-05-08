@@ -10,7 +10,6 @@ import {
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { NavigationContainer } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
-import { CalendarScreen } from "./components/CalendarScreen";
 import { UserScreen } from "./components/UserScreen";
 import { SymptomsScreen } from "./components/SymptonsScreen";
 import { CalendarScreenBeta } from "./components/CalendarScreenBeta";
@@ -20,6 +19,10 @@ import { JsonDate, getDate, toJsonDate } from "./utils";
 type HomeProps = {
   daysLeft: number;
   calendar: Period[];
+};
+export type SymptonEvent = {
+  symptonId: string;
+  date: JsonDate;
 };
 const HomeScreen = ({ daysLeft, calendar }: HomeProps) => {
   const currentDate = new Date();

@@ -5,13 +5,15 @@ export type JsonDate = {
 };
 
 export const getDate = (date: JsonDate): Date =>
-  new Date(date.year, date.month, date.day);
+  new Date(Date.UTC(date.year, date.month, date.day));
 
 export const toJsonDate = (date: Date): JsonDate => {
+  console.log("converting date", date);
+  console.log("day -->", date.getUTCDate());
   return {
-    year: date.getFullYear(),
-    month: date.getMonth(),
-    day: date.getDate(),
+    year: date.getUTCFullYear(),
+    month: date.getUTCMonth(),
+    day: date.getUTCDate(),
   };
 };
 

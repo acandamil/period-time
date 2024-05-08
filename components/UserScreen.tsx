@@ -145,7 +145,7 @@ const styles = StyleSheet.create({
     paddingRight: 40,
     marginTop: 50,
     fontSize: 15,
-    color: "a83248",
+    color: "purple",
   },
   viewOfInfo: {
     padding: 20,
