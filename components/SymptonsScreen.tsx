@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useContext, useState } from "react";
 import {
   View,
   StyleSheet,
@@ -9,20 +9,14 @@ import {
   Alert,
   TouchableOpacity,
 } from "react-native";
-import { SymptomDict, SymptonEvent, SymptonItem } from "../App";
+import { SymptomDict, SymptonItem } from "../types";
 import uuid from "react-native-uuid";
 import { Ionicons } from "@expo/vector-icons";
+import { GlobalContext } from "../context";
 
-type SymptomsProps = {
-  symptonItems: SymptomDict;
-  setSymptonItem: (symptonItems: SymptomDict) => void;
-  //setSymptonsEvents: (symptons: SymptonEvent[]) => void;
-};
-
-export const SymptomsScreen = ({
-  symptonItems,
-  setSymptonItem,
-}: SymptomsProps) => {
+export const SymptomsScreen = () => {
+  const { symptonItems, setSymptonItem, symptons, setSymptons } =
+    useContext(GlobalContext);
   const [sympton, setSympton] = useState<string>("");
   const symptomList = Object.entries(symptonItems);
 
@@ -53,6 +47,8 @@ export const SymptomsScreen = ({
   type ItemComponentProps = { title: string; id: string; colour: string };
 
   const deleteItem = ({ id }: { id: string }) => {
+    const newSymptons = symptons.filter((sympton) => sympton.symptonId !== id);
+    setSymptons(newSymptons);
     const { [id]: _symptom, ...rest } = symptonItems;
     setSymptonItem(rest);
   };

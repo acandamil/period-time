@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -14,22 +14,38 @@ import { UserScreen } from "./components/UserScreen";
 import { SymptomsScreen } from "./components/SymptonsScreen";
 import { CalendarScreenBeta } from "./components/CalendarScreenBeta";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { JsonDate, getDate, toJsonDate } from "./utils";
+import {
+  calculateFuturePeriods,
+  calculateMedianCicle,
+  getDate,
+  toJsonDate,
+} from "./utils";
+import { Period, SymptomDict, SymptonEvent } from "./types";
+import { GlobalContext } from "./context";
 
-type HomeProps = {
-  daysLeft: number;
-  calendar: Period[];
-};
-export type SymptonEvent = {
-  symptonId: string;
-  date: JsonDate;
-};
-const HomeScreen = ({ daysLeft, calendar }: HomeProps) => {
+//Main screen, where the status of the user's cycle is displayed.
+const HomeScreen = () => {
+  //Instead of using props, we have to use Context for the common variables
+  const { calendar } = useContext(GlobalContext);
+  //Calculation of the next periods, days left for next period and if the user is in her period
   const currentDate = new Date();
-  const isWithinRange =
-    currentDate >= getDate(calendar[0].start) &&
-    currentDate <= getDate(calendar[0].end);
-  //T0-D0: CHECK IF THE SECOND VIEW HAS THE PROPER STYLE
+  const futurePeriods = calculateFuturePeriods(calendar);
+  const allPeriods = [...calendar, ...futurePeriods];
+  const nextPeriod = futurePeriods
+    .filter((period) => getDate(period.start) > currentDate)
+    .at(0);
+  const daysLeft =
+    nextPeriod === undefined
+      ? undefined
+      : Math.ceil(
+          (getDate(nextPeriod.start).getTime() - new Date().getTime()) /
+            (24 * 60 * 60 * 1000)
+        );
+  const isWithinRange = allPeriods.some(
+    (period) =>
+      getDate(period.start) <= currentDate && getDate(period.end) >= currentDate
+  );
+  //The screen has 3 modes: 1. If the user is currently with her period 2. There is not enough data to make an estimation 3. The screen shows the days left for the next period
   return (
     <View style={styles.container}>
       <View style={styles.viewTitle}>
@@ -39,6 +55,12 @@ const HomeScreen = ({ daysLeft, calendar }: HomeProps) => {
         <View style={styles.viewCircle}>
           <View style={styles.circle}>
             <Text style={styles.circleText}>ESTÁS CON LA REGLA</Text>
+          </View>
+        </View>
+      ) : daysLeft === undefined ? (
+        <View style={styles.viewCircle}>
+          <View style={styles.circle}>
+            <Text style={styles.circleText}>NO HAY SUFUCIENTES DATOS</Text>
           </View>
         </View>
       ) : (
@@ -54,50 +76,9 @@ const HomeScreen = ({ daysLeft, calendar }: HomeProps) => {
   );
 };
 
-export interface Period {
-  start: JsonDate;
-  end: JsonDate;
-}
-const PERIODS: Period[] = [
-  {
-    start: toJsonDate(new Date("2024-1-29")),
-    end: toJsonDate(new Date("2024-2-5")),
-  },
-  {
-    start: toJsonDate(new Date("2024-1-1")),
-    end: toJsonDate(new Date("2024-1-7")),
-  },
-  {
-    start: toJsonDate(new Date("2023-12-1")),
-    end: toJsonDate(new Date("2023-12-7")),
-  },
-  {
-    start: toJsonDate(new Date("2023-11-1")),
-    end: toJsonDate(new Date("2023-11-7")),
-  },
-  {
-    start: toJsonDate(new Date("2023-10-1")),
-    end: toJsonDate(new Date("2023-10-7")),
-  },
-  {
-    start: toJsonDate(new Date("2023-9-1")),
-    end: toJsonDate(new Date("2023-9-7")),
-  },
-  {
-    start: toJsonDate(new Date("2023-8-1")),
-    end: toJsonDate(new Date("2023-8-7")),
-  },
-];
 const Tab = createBottomTabNavigator();
 
-export interface SymptonItem {
-  title: string;
-  colour: string;
-}
-export type SymptomDict = {
-  [key in string]: SymptonItem;
-};
-
+//Functions necessary to make the application's storage (located on the client side) persisten
 export function useStorage<T>(
   key: string,
   initialValue: T
@@ -106,10 +87,15 @@ export function useStorage<T>(
   useEffect(() => {
     const f = async () => {
       try {
+        //>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+        //AsyncStorage.clear();
         const jsonValue = await AsyncStorage.getItem(key);
         const value = jsonValue != null ? JSON.parse(jsonValue) : null;
         if (value !== null) {
           setState(value);
+        } else {
+          const jsonValue = JSON.stringify(value);
+          await AsyncStorage.setItem(key, jsonValue);
         }
       } catch (e) {
         // TODO
@@ -130,91 +116,86 @@ export function useStorage<T>(
   return [state, setStorageState];
 }
 
+
 const App = () => {
-  const [calendar, setCalendar] = useStorage<Period[]>("periods", PERIODS);
+  const [calendar, setCalendar] = useStorage<Period[]>("periods", []);
   const [symptonItems, setSymptonItem] = useStorage<SymptomDict>(
     "symptoms",
     {}
   );
-  const dateLastPeriod: Date = getDate(calendar[0].start);
-  let estimatedNextPeriod: Date = new Date(dateLastPeriod);
-  estimatedNextPeriod.setDate(estimatedNextPeriod.getDate() + 28);
-  let daysLeft: number = Math.ceil(
-    (estimatedNextPeriod.getTime() - new Date().getTime()) /
-      (24 * 60 * 60 * 1000)
+  const [symptons, setSymptons] = useStorage<SymptonEvent[]>(
+    "symptonEvents",
+    []
   );
 
   return (
-    <NavigationContainer>
-      <Tab.Navigator
-        screenOptions={({ route }) => ({
-          headerTintColor: "purple",
-          tabBarStyle: {
-            backgroundColor: "#E9C0FE",
-          },
-          tabBarIcon: ({ color, size }) => {
-            if (route.name == "Home") {
-              return <Ionicons name="home-outline" size={size} color={color} />;
-            } else if (route.name == "Calendar") {
-              return (
-                <Ionicons name="calendar-outline" size={size} color={color} />
-              );
-            } else if (route.name == "Symptoms") {
-              return (
-                <Ionicons name="fitness-outline" size={size} color={color} />
-              );
-            } else if (route.name == "User") {
-              return (
-                <Ionicons name="person-outline" size={size} color={color} />
-              );
-            }
-          },
-          tabBarActiveTintColor: "purple",
-          tabBarInactiveTintColor: "black",
-        })}
-      >
-        {/* <Tab.Screen name="Home" options={{headerStyle: {backgroundColor: '#E9C0FE'}}}>
-        <HomeScreen daysLeft={daysLeft} calendar={calendar}/>
-      </Tab.Screen> */}
-        <Tab.Screen
-          name="Home"
-          component={() => (
-            <HomeScreen daysLeft={daysLeft} calendar={calendar} />
-          )}
-          options={{ headerStyle: { backgroundColor: "#E9C0FE" } }}
-        />
-        {/* <Tab.Screen name="Calendar" component={()=><CalendarScreen dates = {calendar} setCalendar = {setCalendar} symptonItem={symptonItems}/>} options={{headerStyle: {backgroundColor: '#E9C0FE'}}} /> */}
-        <Tab.Screen
-          name="Calendar"
-          component={() => (
-            <CalendarScreenBeta
-              dates={calendar}
-              setCalendar={setCalendar}
-              symptonItem={symptonItems}
-            />
-          )}
-          options={{ headerStyle: { backgroundColor: "#E9C0FE" } }}
-        />
-        <Tab.Screen
-          name="Symptoms"
-          component={() => (
-            <SymptomsScreen
-              symptonItems={symptonItems}
-              setSymptonItem={setSymptonItem}
-            />
-          )}
-          options={{ headerStyle: { backgroundColor: "#E9C0FE" } }}
-        />
-        <Tab.Screen
-          name="User"
-          component={() => <UserScreen calendar={calendar} />}
-          options={{ headerStyle: { backgroundColor: "#E9C0FE" } }}
-        />
-      </Tab.Navigator>
-    </NavigationContainer>
+    <GlobalContext.Provider
+      value={{
+        calendar,
+        setCalendar,
+        symptonItems,
+        setSymptonItem,
+        symptons,
+        setSymptons,
+      }}
+    >
+      <NavigationContainer>
+        <Tab.Navigator
+          screenOptions={({ route }) => ({
+            headerTintColor: "purple",
+            tabBarStyle: {
+              backgroundColor: "#E9C0FE",
+            },
+            tabBarIcon: ({ color, size }) => {
+              if (route.name == "Home") {
+                return (
+                  <Ionicons name="home-outline" size={size} color={color} />
+                );
+              } else if (route.name == "Calendar") {
+                return (
+                  <Ionicons name="calendar-outline" size={size} color={color} />
+                );
+              } else if (route.name == "Symptoms") {
+                return (
+                  <Ionicons name="fitness-outline" size={size} color={color} />
+                );
+              } else if (route.name == "User") {
+                return (
+                  <Ionicons name="person-outline" size={size} color={color} />
+                );
+              }
+            },
+            tabBarActiveTintColor: "purple",
+            tabBarInactiveTintColor: "black",
+          })}
+        >
+          <Tab.Screen
+            name="Home"
+            component={HomeScreen}
+            options={{ headerStyle: { backgroundColor: "#E9C0FE" } }}
+          />
+          <Tab.Screen
+            name="Calendar"
+            component={CalendarScreenBeta}
+            options={{ headerStyle: { backgroundColor: "#E9C0FE" } }}
+          />
+          <Tab.Screen
+            name="Symptoms"
+            component={SymptomsScreen}
+            options={{ headerStyle: { backgroundColor: "#E9C0FE" } }}
+          />
+          <Tab.Screen
+            name="User"
+            component={UserScreen}
+            options={{ headerStyle: { backgroundColor: "#E9C0FE" } }}
+          />
+        </Tab.Navigator>
+      </NavigationContainer>
+    </GlobalContext.Provider>
   );
 };
 
+//Styles
 const styles = StyleSheet.create({
   container: {
     flex: 1,
