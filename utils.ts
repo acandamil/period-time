@@ -17,18 +17,22 @@ export const getMillis = (date: JsonDate) => getDate(date).getTime();
 
 //Calculate the median of the complete cicle, from day 1 of a period to day 1 of the next period
 export function calculateMedianCicle(periods: Period[]): number {
+  const sortedPeriods = periods.sort(
+    (a, b) => getDate(b.start).getTime() - getDate(a.start).getTime()
+  );
   //if there are less than 2 periods, it returns 28 which is the average cicle
-  if (periods.length <= 2) {
+  if (sortedPeriods.length < 2) {
     return 28;
   }
   var i = 0;
   const durations: number[] = [];
-  if (periods.length > 24) {
-    i = periods.length - 24;
+  if (sortedPeriods.length > 24) {
+    i = sortedPeriods.length - 24;
   }
-  while (i < periods.length - 1) {
+  while (i < sortedPeriods.length - 1) {
     const days = Math.ceil(
-      (getMillis(periods[i].start) - getMillis(periods[i + 1].start)) /
+      (getMillis(sortedPeriods[i].start) -
+        getMillis(sortedPeriods[i + 1].start)) /
         (24 * 60 * 60 * 1000)
     );
     durations.push(days);
@@ -48,7 +52,7 @@ export function calculateMedianCicle(periods: Period[]): number {
 //Calculate the median of the period (bleeding days)
 export function calculateMedian(periods: Period[]): number {
   //if there are less than 2 periods, it returns 5
-  if (periods.length <= 2) {
+  if (periods.length < 1) {
     return 5;
   }
   const durations: number[] = [];

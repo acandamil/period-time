@@ -49,7 +49,7 @@ const HomeScreen = () => {
   return (
     <View style={styles.container}>
       <View style={styles.viewTitle}>
-        <Text style={styles.text}>Bienvenida, Aurora</Text>
+        <Text style={styles.text}>Bienvenida</Text>
       </View>
       {isWithinRange ? (
         <View style={styles.viewCircle}>
