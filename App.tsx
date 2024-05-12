@@ -20,7 +20,7 @@ import {
   getDate,
   toJsonDate,
 } from "./utils";
-import { Period, SymptomDict, SymptonEvent } from "./types";
+import { Period, SymptomDict, SymptomEvent } from "./types";
 import { GlobalContext } from "./context";
 
 //Main screen, where the status of the user's cycle is displayed.
@@ -116,14 +116,13 @@ export function useStorage<T>(
   return [state, setStorageState];
 }
 
-
 const App = () => {
   const [calendar, setCalendar] = useStorage<Period[]>("periods", []);
   const [symptonItems, setSymptonItem] = useStorage<SymptomDict>(
     "symptoms",
     {}
   );
-  const [symptons, setSymptons] = useStorage<SymptonEvent[]>(
+  const [symptons, setSymptons] = useStorage<SymptomEvent[]>(
     "symptonEvents",
     []
   );
@@ -133,10 +132,10 @@ const App = () => {
       value={{
         calendar,
         setCalendar,
-        symptonItems,
-        setSymptonItem,
-        symptons,
-        setSymptons,
+        symptomItems: symptonItems,
+        setSymptomItem: setSymptonItem,
+        symptomEvents: symptons,
+        setSymptomEvents: setSymptons,
       }}
     >
       <NavigationContainer>

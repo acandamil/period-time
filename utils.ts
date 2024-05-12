@@ -1,8 +1,10 @@
 import { JsonDate, Period } from "./types";
 
+//Transform a JsonDate into a regular date
 export const getDate = (date: JsonDate): Date =>
   new Date(Date.UTC(date.year, date.month, date.day));
 
+//Transform a date into Jason date
 export const toJsonDate = (date: Date): JsonDate => {
   return {
     year: date.getUTCFullYear(),
@@ -13,7 +15,9 @@ export const toJsonDate = (date: Date): JsonDate => {
 
 export const getMillis = (date: JsonDate) => getDate(date).getTime();
 
+//Calculate the median of the complete cicle, from day 1 of a period to day 1 of the next period
 export function calculateMedianCicle(periods: Period[]): number {
+  //if there are less than 2 periods, it returns 28 which is the average cicle
   if (periods.length <= 2) {
     return 28;
   }
@@ -40,7 +44,10 @@ export function calculateMedianCicle(periods: Period[]): number {
     return durations[mid];
   }
 }
+
+//Calculate the median of the period (bleeding days)
 export function calculateMedian(periods: Period[]): number {
+  //if there are less than 2 periods, it returns 5
   if (periods.length <= 2) {
     return 5;
   }
@@ -65,6 +72,7 @@ export function calculateMedian(periods: Period[]): number {
   }
 }
 
+//From the already storage periods, the function makes an estimation of the next 12 periods
 export const calculateFuturePeriods = (periods: Period[]) => {
   if (periods.length === 0) {
     return [];
@@ -93,4 +101,9 @@ export const calculateFuturePeriods = (periods: Period[]) => {
       return futurePeriods;
     }
   }
+};
+
+export const calculateDurationInDays = (start: Date, end: Date) => {
+  const difference = end.getTime() - start.getTime();
+  return Math.ceil(difference / (1000 * 60 * 60 * 24) + 1);
 };

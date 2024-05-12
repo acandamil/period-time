@@ -11,8 +11,13 @@ import {
   Alert,
 } from "react-native";
 import React, { useContext, useState } from "react";
-import { calculateFuturePeriods, getDate, toJsonDate } from "../utils";
-import { JsonDate, SymptonEvent } from "../types";
+import {
+  calculateDurationInDays,
+  calculateFuturePeriods,
+  getDate,
+  toJsonDate,
+} from "../utils";
+import { JsonDate, SymptomEvent } from "../types";
 import { GlobalContext } from "../context";
 import { Ionicons } from "@expo/vector-icons";
 
@@ -24,26 +29,32 @@ const getJsonDateId = (day: JsonDate) =>
 
 export const CalendarScreenBeta = () => {
   const {
-    calendar: dates,
+    calendar: periods,
     setCalendar,
-    symptonItems: symptonItem,
-    symptons,
-    setSymptons,
+    symptomItems,
+    symptomEvents,
+    setSymptomEvents,
   } = useContext(GlobalContext);
+
+  //State to storage the selected date in teh calendar
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const selectedJsonDate =
     selectedDate !== undefined ? toJsonDate(selectedDate) : undefined;
+  //State to storage if the modal is open
   const [modalVisible, setModalVisible] = useState(false);
 
-  const selectedPeriods = dates.filter(
-    (period) =>
-      selectedDate !== undefined &&
-      getDate(period.start) <= selectedDate &&
-      getDate(period.end) >= selectedDate
-  );
-  const selectedPeriod = selectedPeriods.at(0);
+  //Select if the are any period in the select day
+  const selectedPeriod = periods
+    .filter(
+      (period) =>
+        selectedDate !== undefined &&
+        getDate(period.start) <= selectedDate &&
+        getDate(period.end) >= selectedDate
+    )
+    .at(0);
 
-  const days = dates.flatMap((period) => {
+  //Transforms the periods (Period type) in an array of individual dates, which contains each day the user has had bleeding
+  const days = periods.flatMap((period) => {
     const dates = [];
     const currentDate = getDate(period.start);
     const end = getDate(period.end);
@@ -53,19 +64,21 @@ export const CalendarScreenBeta = () => {
     }
     return dates;
   });
-
   const dayStrings = days.map(getDateId);
+
+  //MarkedDates is the variable that the calendar later needs to know which days to mark. Initially, we the bleeding days.
   const markedDatePairs = dayStrings.map((day) => [
     day,
     { selected: true, selectedColor: "#ff8c8c", dots: [] },
   ]);
   const markedDates = Object.fromEntries(markedDatePairs);
 
-  symptons.forEach((sympton) => {
+  //Now we add to markesDates the symptoms for the dots. We cheek if its a bleeding day or not
+  symptomEvents.forEach((sympton) => {
     const dateId = getJsonDateId(sympton.date);
     const dot = {
-      key: sympton.symptonId,
-      color: symptonItem[sympton.symptonId].colour,
+      key: sympton.symptomId,
+      color: symptomItems[sympton.symptomId].colour,
     };
     if (dateId in markedDates) {
       markedDates[dateId].dots.push(dot);
@@ -78,7 +91,8 @@ export const CalendarScreenBeta = () => {
     }
   });
 
-  const futurePeriods = calculateFuturePeriods(dates);
+  //We calculate and add now to the calendar the future periods in a different color
+  const futurePeriods = calculateFuturePeriods(periods);
   const daysOfFuturePeriods = futurePeriods.flatMap((period) => {
     const dates = [];
     const currentDate = getDate(period.start);
@@ -97,10 +111,8 @@ export const CalendarScreenBeta = () => {
       dots: [],
     };
   });
-  // console.log(">>>>>>>>>>>>");
-  // console.log(futurePeriods);
-  // console.log(">>>>>>>>>>>>");
-  // console.log(daysOfFuturePeriodsString);
+
+  //Now we add to markedDate the day selected, checking the corresponding color
   if (selectedDate !== undefined) {
     const selectedDateID = getDateId(selectedDate);
     if (selectedDateID in markedDates) {
@@ -117,30 +129,57 @@ export const CalendarScreenBeta = () => {
       };
     }
   }
+
   const symptomForSelectedDate =
     selectedDate === undefined
       ? []
-      : symptons.filter(
+      : symptomEvents.filter(
           (symptom) => getJsonDateId(symptom.date) === getDateId(selectedDate)
         );
-  const symptomList = Object.entries(symptonItem);
+  const symptomList = Object.entries(symptomItems);
   const symptonIdForSelectedDate = symptomForSelectedDate.map(
-    (sympton) => sympton.symptonId
+    (sympton) => sympton.symptomId
   );
+  //Checking which symptoms are already selected in a day, so we dont show the symptoms in the new symptom list
   const symptomsAvailableForSelectedDay = symptomList.filter(
     ([id, symptom]) => !symptonIdForSelectedDate.includes(id)
   );
-  const deleteSymptomForASelectedDay = (selectedSympton: SymptonEvent) => {
-    const newSymptons = symptons.filter(
+
+  //function to delete symptom in a day
+  const deleteSymptomForASelectedDay = (selectedSympton: SymptomEvent) => {
+    const newSymptons = symptomEvents.filter(
       (symptom) =>
         getJsonDateId(symptom.date) !== getJsonDateId(selectedSympton.date) ||
-        symptom.symptonId !== selectedSympton.symptonId
+        symptom.symptomId !== selectedSympton.symptomId
     );
-    setSymptons(newSymptons);
+    setSymptomEvents(newSymptons);
+  };
+
+  const selectedPeriodDuration =
+    selectedPeriod !== undefined
+      ? calculateDurationInDays(
+          getDate(selectedPeriod.start),
+          getDate(selectedPeriod.end)
+        )
+      : 0;
+  const incrementDay = (increment: number) => {
+    if (selectedPeriod !== undefined) {
+      const newEnd = new Date(getDate(selectedPeriod.end));
+      newEnd.setDate(newEnd.getDate() + increment);
+      const newPeriods = periods.filter(
+        (period) => period.start !== selectedPeriod.start
+      );
+      const newPeriod = {
+        ...selectedPeriod,
+        end: toJsonDate(newEnd),
+      };
+      setCalendar([...newPeriods, newPeriod]);
+    }
   };
 
   return (
     <View style={styles.container}>
+      {/* Modal for new symptoms */}
       <Modal
         style={styles.centeredView}
         visible={modalVisible}
@@ -160,10 +199,10 @@ export const CalendarScreenBeta = () => {
                   onPress={() => {
                     if (selectedJsonDate !== undefined) {
                       const newSympton = {
-                        symptonId: id,
+                        symptomId: id,
                         date: selectedJsonDate,
                       };
-                      setSymptons([...symptons, newSympton]);
+                      setSymptomEvents([...symptomEvents, newSympton]);
                     }
                     setModalVisible(false);
                   }}
@@ -181,6 +220,7 @@ export const CalendarScreenBeta = () => {
           </View>
         </View>
       </Modal>
+      {/* Calendar */}
       <Calendar
         markingType={"multi-dot"}
         markedDates={markedDates}
@@ -193,6 +233,7 @@ export const CalendarScreenBeta = () => {
           textSectionTitleColor: "purple",
         }}
       />
+      {/* Message for the front of the calendar, 2 options: there is a day select and there isnt */}
       {selectedDate !== undefined ? (
         <Text style={styles.today}>
           Día {selectedDate.toLocaleDateString("es")}
@@ -209,6 +250,7 @@ export const CalendarScreenBeta = () => {
             height: 230,
           }}
         >
+          {/* List of the already selected symptoms for the selected date */}
           {symptomForSelectedDate.length !== 0 ? (
             <FlatList
               data={symptomForSelectedDate}
@@ -219,14 +261,14 @@ export const CalendarScreenBeta = () => {
                       width: 22,
                       height: 22,
                       borderRadius: 22 / 2,
-                      backgroundColor: symptonItem[item.symptonId].colour,
+                      backgroundColor: symptomItems[item.symptomId].colour,
                       marginTop: 5,
                       marginLeft: 1,
                       flex: 1,
                     }}
                   ></View>
                   <Text style={styles.sympton}>
-                    {symptonItem[item.symptonId].title}
+                    {symptomItems[item.symptomId].title}
                   </Text>
                   <TouchableOpacity
                     style={{ alignItems: "center", flex: 1, marginTop: 5 }}
@@ -240,15 +282,26 @@ export const CalendarScreenBeta = () => {
                   </TouchableOpacity>
                 </View>
               )}
-              keyExtractor={(item) => item.symptonId}
+              keyExtractor={(item) => item.symptomId}
             />
           ) : (
             <Text style={styles.noSymptons}>No hay síntomas</Text>
           )}
         </View>
+        {/* Button of register a new period o delete the current period */}
         {selectedDate !== undefined &&
           selectedDate.getTime() <= currentDate.getTime() && (
             <View style={{ flex: 1 }}>
+              {/* Button of new symptom*/}
+              {symptomsAvailableForSelectedDay.length !== 0 && (
+                <View style={styles.button}>
+                  <Button
+                    title="Nuevo síntoma"
+                    color="white"
+                    onPress={() => setModalVisible(true)}
+                  />
+                </View>
+              )}
               {selectedPeriod === undefined ? (
                 <View style={styles.button}>
                   <Button
@@ -265,32 +318,88 @@ export const CalendarScreenBeta = () => {
                           start: selectedJsonDate,
                           end: toJsonDate(end),
                         };
-                        setCalendar([...dates, newPeriod]);
+                        setCalendar([...periods, newPeriod]);
                       }
                     }}
                   />
                 </View>
               ) : (
-                <View style={styles.button}>
-                  <Button
-                    title="Borrar"
-                    color="white"
-                    onPress={() => {
-                      setCalendar(
-                        dates.filter((period) => period !== selectedPeriod)
-                      );
+                <>
+                  <View style={styles.button}>
+                    <Button
+                      title="Borrar"
+                      color="white"
+                      onPress={() => {
+                        setCalendar(
+                          periods.filter((period) => period !== selectedPeriod)
+                        );
+                      }}
+                    />
+                  </View>
+                  <View
+                    style={{
+                      backgroundColor: "#ecc0fa",
+                      marginLeft: 10,
+                      marginRight: 10,
+                      marginTop: 6,
+                      borderRadius: 10,
+                      height: 129,
+                      flexDirection: "column",
+                      padding: 10,
                     }}
-                  />
-                </View>
-              )}
-              {symptomsAvailableForSelectedDay.length !== 0 && (
-                <View style={styles.button}>
-                  <Button
-                    title="Nuevo síntoma"
-                    color="white"
-                    onPress={() => setModalVisible(true)}
-                  />
-                </View>
+                  >
+                    <Text style={[styles.duration, { flex: 1 }]}>Duración</Text>
+                    <Text style={[styles.duration, { flex: 1 }]}>
+                      {selectedPeriodDuration} días
+                    </Text>
+                    <View
+                      style={{
+                        justifyContent: "center",
+                        flexDirection: "row",
+                        flex: 2,
+                        alignItems: "baseline",
+                        marginTop: 10,
+                      }}
+                    >
+                      <View
+                        style={[
+                          {
+                            //flex: 1,
+                            borderRadius: 200,
+                            width: 35,
+                            height: 35,
+                            backgroundColor: "purple",
+                            marginRight: 15,
+                          },
+                        ]}
+                      >
+                        <Button
+                          title="-"
+                          color="white"
+                          disabled={selectedPeriodDuration <= 1}
+                          onPress={() => incrementDay(-1)}
+                        />
+                      </View>
+                      <View
+                        style={[
+                          {
+                            //flex: 1,
+                            borderRadius: 200,
+                            width: 35,
+                            height: 35,
+                            backgroundColor: "purple",
+                          },
+                        ]}
+                      >
+                        <Button
+                          title="+"
+                          color="white"
+                          onPress={() => incrementDay(1)}
+                        />
+                      </View>
+                    </View>
+                  </View>
+                </>
               )}
             </View>
           )}
@@ -382,5 +491,11 @@ const styles = StyleSheet.create({
   textModal: {
     fontSize: 15,
     padding: 3,
+  },
+  duration: {
+    textAlign: "center",
+    fontSize: 18,
+    padding: 3,
+    color: "purple",
   },
 });

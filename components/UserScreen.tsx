@@ -4,17 +4,8 @@ import { calculateMedianCicle, getMillis, calculateMedian } from "../utils";
 import { Period } from "../types";
 import { GlobalContext } from "../context";
 
-/*function calculateAverage(periods: Period[]): number {
-    let sum: number = 0;
-
-    for (let i = 0; i < periods.length; i++) {
-      let days = Math.ceil((periods[i].end.getTime() - periods[i].start.getTime()) / (24 * 60 * 60 * 1000));
-      sum = sum + days;
-    }
-  
-    return Math.round(sum / periods.length);
-  }*/
-
+//CalculateMedianEndStart calculate the days between the end of one period and the start of the next one
+//CalculateMedianCicle and CalculateMedian are both in utils.ts
 function calculateMedianEndStart(periods: Period[]): number {
   return calculateMedianCicle(periods) - calculateMedian(periods);
 }
