@@ -294,48 +294,53 @@ export const CalendarScreenBeta = () => {
             <View style={{ flex: 1 }}>
               {/* Button of new symptom*/}
               {symptomsAvailableForSelectedDay.length !== 0 && (
-                <View style={styles.button}>
-                  <Button
-                    title="Nuevo síntoma"
-                    color="white"
-                    onPress={() => setModalVisible(true)}
-                  />
-                </View>
+                <TouchableOpacity
+                  style={styles.touchButton}
+                  onPress={() => setModalVisible(true)}
+                >
+                  <Text style={{ color: "white", fontSize: 17, marginTop: 4 }}>
+                    Nuevo síntoma
+                  </Text>
+                </TouchableOpacity>
               )}
               {selectedPeriod === undefined ? (
-                <View style={styles.button}>
-                  <Button
-                    title="Nueva Regla"
-                    color="white"
-                    onPress={() => {
-                      if (
-                        selectedDate !== undefined &&
-                        selectedJsonDate !== undefined
-                      ) {
-                        const end = new Date(selectedDate);
-                        end.setDate(end.getDate() + 6);
-                        const newPeriod = {
-                          start: selectedJsonDate,
-                          end: toJsonDate(end),
-                        };
-                        setCalendar([...periods, newPeriod]);
-                      }
-                    }}
-                  />
-                </View>
+                <TouchableOpacity
+                  style={styles.touchButton}
+                  onPress={() => {
+                    if (
+                      selectedDate !== undefined &&
+                      selectedJsonDate !== undefined
+                    ) {
+                      const end = new Date(selectedDate);
+                      end.setDate(end.getDate() + 6);
+                      const newPeriod = {
+                        start: selectedJsonDate,
+                        end: toJsonDate(end),
+                      };
+                      setCalendar([...periods, newPeriod]);
+                    }
+                  }}
+                >
+                  <Text style={{ color: "white", fontSize: 17, marginTop: 4 }}>
+                    Nueva Regla
+                  </Text>
+                </TouchableOpacity>
               ) : (
                 <>
-                  <View style={styles.button}>
-                    <Button
-                      title="Borrar"
-                      color="white"
-                      onPress={() => {
-                        setCalendar(
-                          periods.filter((period) => period !== selectedPeriod)
-                        );
-                      }}
-                    />
-                  </View>
+                  <TouchableOpacity
+                    style={styles.touchButton}
+                    onPress={() => {
+                      setCalendar(
+                        periods.filter((period) => period !== selectedPeriod)
+                      );
+                    }}
+                  >
+                    <Text
+                      style={{ color: "white", fontSize: 17, marginTop: 4 }}
+                    >
+                      Borrar
+                    </Text>
+                  </TouchableOpacity>
                   <View
                     style={{
                       backgroundColor: "#ecc0fa",
@@ -361,7 +366,32 @@ export const CalendarScreenBeta = () => {
                         marginTop: 10,
                       }}
                     >
-                      <View
+                      <TouchableOpacity
+                        style={[
+                          {
+                            //flex: 1,
+                            borderRadius: 200,
+                            width: 35,
+                            height: 35,
+                            backgroundColor: "purple",
+                            marginRight: 15,
+                          },
+                        ]}
+                        disabled={selectedPeriodDuration <= 1}
+                        onPress={() => incrementDay(-1)}
+                      >
+                        <Text
+                          style={{
+                            color: "white",
+                            fontSize: 17,
+                            alignSelf: "center",
+                            marginTop: 5,
+                          }}
+                        >
+                          -
+                        </Text>
+                      </TouchableOpacity>
+                      {/* <View
                         style={[
                           {
                             //flex: 1,
@@ -379,8 +409,8 @@ export const CalendarScreenBeta = () => {
                           disabled={selectedPeriodDuration <= 1}
                           onPress={() => incrementDay(-1)}
                         />
-                      </View>
-                      <View
+                      </View> */}
+                      <TouchableOpacity
                         style={[
                           {
                             //flex: 1,
@@ -390,13 +420,19 @@ export const CalendarScreenBeta = () => {
                             backgroundColor: "purple",
                           },
                         ]}
+                        onPress={() => incrementDay(1)}
                       >
-                        <Button
-                          title="+"
-                          color="white"
-                          onPress={() => incrementDay(1)}
-                        />
-                      </View>
+                        <Text
+                          style={{
+                            color: "white",
+                            fontSize: 17,
+                            alignSelf: "center",
+                            marginTop: 5,
+                          }}
+                        >
+                          +
+                        </Text>
+                      </TouchableOpacity>
                     </View>
                   </View>
                 </>
@@ -470,6 +506,18 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
   button: {
+    marginRight: 10,
+    marginLeft: 10,
+    paddingTop: 4,
+    marginTop: 4,
+    backgroundColor: "purple",
+    borderRadius: 5,
+    borderWidth: 1,
+    borderColor: "purple",
+  },
+  touchButton: {
+    alignItems: "center",
+    height: 40,
     marginRight: 10,
     marginLeft: 10,
     paddingTop: 4,

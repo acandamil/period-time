@@ -28,7 +28,7 @@ export const UserScreen = () => {
         </View>
         <View style={styles.viewOfInfo}>
           <Text style={styles.textUser}>
-            Periódo medio: {calculateMedian(calendar)}
+            Periodo medio: {calculateMedian(calendar)}
           </Text>
         </View>
         {calendar.length <= 5 ? (

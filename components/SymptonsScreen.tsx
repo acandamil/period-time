@@ -15,14 +15,14 @@ import { Ionicons } from "@expo/vector-icons";
 import { GlobalContext } from "../context";
 
 export const SymptomsScreen = () => {
-  //adding the context
+  //Adding the context
   const { symptomItems, setSymptomItem, symptomEvents, setSymptomEvents } =
     useContext(GlobalContext);
 
   const [symptom, setSymptom] = useState<string>("");
   const symptomList = Object.entries(symptomItems);
 
-  //funcion for when the user press "Guardar"
+  //Funcion for when the user press "Guardar"
   const handleButtonPress = () => {
     if (symptomList.length >= 10) {
       Alert.alert("Ya has añadido 10 síntomas");
@@ -32,7 +32,7 @@ export const SymptomsScreen = () => {
         title: symptom,
         colour: "#" + Math.floor(Math.random() * 16777215).toString(16),
       };
-      //check that the symptom doesn't exit already
+      //Check that the symptom doesn't exit already
       const alreadyExist = symptomList.find(
         ([id, symptom]) => symptom.title === newItem.title
       );
@@ -95,9 +95,19 @@ export const SymptomsScreen = () => {
         onChangeText={(newSymptom) => setSymptom(newSymptom)}
         maxLength={15}
       />
-      <View style={styles.screenButton}>
-        <Button title="Guardar" color="white" onPress={handleButtonPress} />
-      </View>
+      <TouchableOpacity style={styles.saveButton} onPress={handleButtonPress}>
+        <Text
+          style={{
+            color: "white",
+            fontSize: 20,
+            textAlign: "center",
+            marginTop: 10,
+          }}
+        >
+          Guardar
+        </Text>
+      </TouchableOpacity>
+
       <FlatList
         data={symptomList}
         renderItem={({ item: [id, symptom] }) => (
@@ -161,6 +171,14 @@ const styles = StyleSheet.create({
     marginLeft: 10,
     marginTop: 7,
     flex: 1,
+  },
+  saveButton: {
+    margin: 10,
+    marginTop: 20,
+    height: 50,
+    borderRadius: 10,
+    backgroundColor: "purple",
+    alignContent: "center",
   },
   title: {
     marginRight: 40,

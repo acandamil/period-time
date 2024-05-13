@@ -22,6 +22,10 @@ import {
 } from "./utils";
 import { Period, SymptomDict, SymptomEvent } from "./types";
 import { GlobalContext } from "./context";
+import * as Notifications from "expo-notifications";
+
+const HOUR = 12;
+const MINUTES = 10;
 
 //Main screen, where the status of the user's cycle is displayed.
 const HomeScreen = () => {
@@ -34,6 +38,8 @@ const HomeScreen = () => {
   const nextPeriod = futurePeriods
     .filter((period) => getDate(period.start) > currentDate)
     .at(0);
+
+  //Days left for the next period
   const daysLeft =
     nextPeriod === undefined
       ? undefined
@@ -41,10 +47,14 @@ const HomeScreen = () => {
           (getDate(nextPeriod.start).getTime() - new Date().getTime()) /
             (24 * 60 * 60 * 1000)
         );
-  const isWithinRange = allPeriods.some(
-    (period) =>
-      getDate(period.start) <= currentDate && getDate(period.end) >= currentDate
-  );
+
+  //Check if current date is in a calculated period or real period
+  const isWithinRange = allPeriods.some((period) => {
+    const endDate = getDate(period.end);
+    endDate.setHours(23, 59);
+    return getDate(period.start) <= currentDate && endDate >= currentDate;
+  });
+
   //The screen has 3 modes: 1. If the user is currently with her period 2. There is not enough data to make an estimation 3. The screen shows the days left for the next period
   return (
     <View style={styles.container}>
@@ -87,7 +97,6 @@ export function useStorage<T>(
   useEffect(() => {
     const f = async () => {
       try {
-        //>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
         //AsyncStorage.clear();
         const jsonValue = await AsyncStorage.getItem(key);
         const value = jsonValue != null ? JSON.parse(jsonValue) : null;
@@ -117,7 +126,57 @@ export function useStorage<T>(
 }
 
 const App = () => {
-  const [calendar, setCalendar] = useStorage<Period[]>("periods", []);
+  //This useEffect is create to be able to throw a notification later
+  useEffect(() => {
+    Notifications.setNotificationHandler({
+      handleNotification: async () => ({
+        shouldShowAlert: true,
+        shouldPlaySound: false,
+        shouldSetBadge: false,
+      }),
+    });
+  }, []);
+  //setCalendarState is same than setCalendar but in setCalendar we add some necessary steps to throw notification
+  const [calendar, setCalendarState] = useStorage<Period[]>("periods", []);
+
+  const setCalendar = async (periods: Period[]) => {
+    setCalendarState(periods);
+    //Every time calendar changes, cancel all scheduled notifications
+    Notifications.cancelAllScheduledNotificationsAsync();
+    const futurePeriods = calculateFuturePeriods(periods);
+    const nextPeriods = futurePeriods.filter((period) => {
+      const notificationDate = getDate(period.start);
+      notificationDate.setHours(HOUR, MINUTES);
+      return notificationDate > new Date();
+    });
+    //Take the start of the next period (that is not in the past)
+    const jsonTrigger = nextPeriods.at(0)?.start;
+    //If the date is not undefined, check if the app has the necessary permissions
+    if (jsonTrigger !== undefined) {
+      const { granted } = await Notifications.getPermissionsAsync();
+      //If the app doesnt have the permissions, then make a request
+      if (!granted) {
+        await Notifications.requestPermissionsAsync({
+          ios: {
+            allowAlert: true,
+            allowBadge: true,
+            allowSound: true,
+            allowAnnouncements: true,
+          },
+        });
+      }
+      //Create new trigger for the notification
+      const trigger = getDate(jsonTrigger);
+      trigger.setHours(HOUR, MINUTES);
+      //Create the notification
+      Notifications.scheduleNotificationAsync({
+        content: {
+          title: "Hoy se estima que comienza tu periodo",
+        },
+        trigger,
+      });
+    }
+  };
   const [symptonItems, setSymptonItem] = useStorage<SymptomDict>(
     "symptoms",
     {}
