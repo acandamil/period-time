@@ -107,6 +107,7 @@ export const calculateFuturePeriods = (periods: Period[]) => {
   }
 };
 
+//Calculate the days between to dates, including the start and end date
 export const calculateDurationInDays = (start: Date, end: Date) => {
   const difference = end.getTime() - start.getTime();
   return Math.ceil(difference / (1000 * 60 * 60 * 24) + 1);

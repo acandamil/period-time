@@ -23,7 +23,6 @@ import { Ionicons } from "@expo/vector-icons";
 
 const getDateId = (day: Date) => day.toISOString().substring(0, 10);
 const currentDate = new Date();
-
 const getJsonDateId = (day: JsonDate) =>
   getDate(day).toISOString().substring(0, 10);
 
@@ -129,7 +128,7 @@ export const CalendarScreenBeta = () => {
       };
     }
   }
-
+  //Check for symptom in a selected date and the ids of these symptons
   const symptomForSelectedDate =
     selectedDate === undefined
       ? []
@@ -303,6 +302,7 @@ export const CalendarScreenBeta = () => {
                   </Text>
                 </TouchableOpacity>
               )}
+              {/* If the day is not in a period, the screen shows "Nueva regla" */}
               {selectedPeriod === undefined ? (
                 <TouchableOpacity
                   style={styles.touchButton}
@@ -327,6 +327,7 @@ export const CalendarScreenBeta = () => {
                 </TouchableOpacity>
               ) : (
                 <>
+                  {/* If there is already a period, the screens shows "Borrar" */}
                   <TouchableOpacity
                     style={styles.touchButton}
                     onPress={() => {
@@ -353,6 +354,7 @@ export const CalendarScreenBeta = () => {
                       padding: 10,
                     }}
                   >
+                    {/* If there is already a period, the user can also change the duration */}
                     <Text style={[styles.duration, { flex: 1 }]}>Duración</Text>
                     <Text style={[styles.duration, { flex: 1 }]}>
                       {selectedPeriodDuration} días
@@ -366,10 +368,10 @@ export const CalendarScreenBeta = () => {
                         marginTop: 10,
                       }}
                     >
+                      {/* Less days button*/}
                       <TouchableOpacity
                         style={[
                           {
-                            //flex: 1,
                             borderRadius: 200,
                             width: 35,
                             height: 35,
@@ -391,25 +393,7 @@ export const CalendarScreenBeta = () => {
                           -
                         </Text>
                       </TouchableOpacity>
-                      {/* <View
-                        style={[
-                          {
-                            //flex: 1,
-                            borderRadius: 200,
-                            width: 35,
-                            height: 35,
-                            backgroundColor: "purple",
-                            marginRight: 15,
-                          },
-                        ]}
-                      >
-                        <Button
-                          title="-"
-                          color="white"
-                          disabled={selectedPeriodDuration <= 1}
-                          onPress={() => incrementDay(-1)}
-                        />
-                      </View> */}
+                      {/* More days button*/}
                       <TouchableOpacity
                         style={[
                           {
