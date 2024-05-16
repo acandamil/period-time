@@ -22,12 +22,12 @@ export default () => {
   const [symptom, setSymptom] = useState<string>("");
   const symptomList = Object.entries(symptomItems);
 
-  //Funcion for when the user press "Guardar"
+  //Fuction for when the user press "Guardar"
   const handleButtonPress = () => {
     if (symptomList.length >= 10) {
       Alert.alert("Ya has añadido 10 síntomas");
     } else if (symptom.trim() !== "") {
-      //The system asign a ramdon color to the new symptom
+      //The system asigns a ramdon color to the new symptom
       const newItem: SymptomItem = {
         title: symptom,
         colour: "#" + Math.floor(Math.random() * 16777215).toString(16),
@@ -39,7 +39,7 @@ export default () => {
       if (alreadyExist) {
         Alert.alert("No puedes añadir dos síntomas con el mismo nombre");
       } else {
-        //adding the new symptom, to symptomItem as a SymptomDict (id, title, color)
+        //Adding the new symptom, to symptomItem as a SymptomDict (id, title, color)
         const id = uuid.v4().toString();
         setSymptomItem({
           ...symptomItems,

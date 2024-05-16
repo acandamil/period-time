@@ -64,7 +64,7 @@ export default () => {
   });
   const dayStrings = days.map(getDateId);
 
-  //MarkedDates is the variable that the calendar later needs to know which days to mark. Initially, we the bleeding days.
+  //MarkedDates is the variable that the calendar later needs to know which days to mark. Initially, we add the bleeding days.
   const markedDatePairs = dayStrings.map((day) => [
     day,
     { selected: true, selectedColor: "#ff8c8c", dots: [] },
@@ -127,7 +127,7 @@ export default () => {
       };
     }
   }
-  //Check for symptom in a selected date and the ids of these symptons
+  //Checks for symptom in a selected date and the ids of these symptons
   const symptomForSelectedDate =
     selectedDate === undefined
       ? []
@@ -143,7 +143,7 @@ export default () => {
     ([id, symptom]) => !symptonIdForSelectedDate.includes(id)
   );
 
-  //function to delete symptom in a day
+  //Function to delete symptom in a selected day
   const deleteSymptomForASelectedDay = (selectedSympton: SymptomEvent) => {
     const newSymptons = symptomEvents.filter(
       (symptom) =>
@@ -153,6 +153,7 @@ export default () => {
     setSymptomEvents(newSymptons);
   };
 
+  //Calculates the duration in days of the period
   const selectedPeriodDuration =
     selectedPeriod !== undefined
       ? calculateDurationInDays(
@@ -160,6 +161,8 @@ export default () => {
           getDate(selectedPeriod.end)
         )
       : 0;
+
+  //Add a number (-1 or 1) to the lenght of the period
   const incrementDay = (increment: number) => {
     if (selectedPeriod !== undefined) {
       const newEnd = new Date(getDate(selectedPeriod.end));
