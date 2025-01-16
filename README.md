@@ -19,5 +19,14 @@ npm install
 npm run ios
 ```
 ## Preview
+Calendar:
+
+![|300](https://github.com/user-attachments/assets/25a9f0bf-43c0-4bc8-bcf6-817114989066)
+
+Symptoms:
+
+![|300](https://github.com/user-attachments/assets/c9231854-f31f-46ff-8c1c-435403ba8696)
+
+
 ## Licence 📜
 PeriodTime is licensed under the GPLv3. You can find the full text of the [LICENCE](https://github.com/acandamil/period-time/blob/main/LICENSE) in the  file.
